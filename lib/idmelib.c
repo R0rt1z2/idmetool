@@ -124,6 +124,39 @@ int idmelib_set_var(struct idme *hdr, const char *name, const char *value)
 	return 0;
 }
 
+/* get the IDME version as a null-terminated string. */
+int idmelib_get_version(struct idme *hdr, char *buf, size_t len)
+{
+	size_t copy_len;
+
+	if (!hdr || !buf || len == 0)
+		return -1;
+
+	copy_len = MIN((size_t)IDME_VERSION_LEN, len - 1);
+	memcpy(buf, hdr->version, copy_len);
+	buf[copy_len] = '\0';
+
+	return 0;
+}
+
+/* set the IDME version from a string. */
+int idmelib_set_version(struct idme *hdr, const char *version)
+{
+	size_t vlen;
+
+	if (!hdr || !version)
+		return -1;
+
+	vlen = strlen(version);
+	if (vlen > IDME_VERSION_LEN)
+		return -1;
+
+	memset(hdr->version, 0, IDME_VERSION_LEN);
+	memcpy(hdr->version, version, vlen);
+
+	return 0;
+}
+
 /* convert a permission bitmask to a rwx string. */
 void idmelib_permission_to_str(uint32_t perm, char *buf)
 {

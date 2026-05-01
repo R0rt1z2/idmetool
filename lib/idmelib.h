@@ -144,6 +144,14 @@ void idmelib_permission_to_str(uint32_t perm, char *buf);
 /* check if a binary blob item contains any non-zero data. */
 bool idmelib_item_has_data(const struct idme_item *item);
 
+/* get the IDME version as a null-terminated string.
+ * buf must be at least IDME_VERSION_LEN + 1 bytes.
+ */
+int idmelib_get_version(struct idme *hdr, char *buf, size_t len);
+
+/* set the IDME version from a string (max IDME_VERSION_LEN chars). */
+int idmelib_set_version(struct idme *hdr, const char *version);
+
 #if IDMELIB_HAS_STDIO
 
 /* get the IDME variable name for a given flag type. */

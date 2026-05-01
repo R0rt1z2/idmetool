@@ -77,6 +77,8 @@ static void print_usage(const char *prog)
 			"Show current boot mode\n");
 	fprintf(stderr, "  bootcount                               "
 			"Show current boot count\n");
+	fprintf(stderr, "  version [value]                         "
+			"Show or set the IDME version\n");
 }
 
 static void print_idme(struct idme *hdr)
@@ -405,6 +407,31 @@ int main(int argc, char *argv[])
 		}
 
 		fclose(out);
+	} else if (strcmp(argv[0], "version") == 0) {
+		if (argc < 2) {
+			char ver[IDME_VERSION_LEN + 1];
+			if (idmelib_get_version(hdr, ver, sizeof(ver)) != 0) {
+				fprintf(stderr, "Error: Could not read version.\n");
+				ret = EXIT_FAILURE;
+			} else {
+				printf("%s\n", ver);
+			}
+		} else {
+			if (idmelib_set_version(hdr, argv[1]) != 0) {
+				fprintf(stderr,
+					"Error: Invalid version '%s' (max %d chars).\n",
+					argv[1], IDME_VERSION_LEN);
+				ret = EXIT_FAILURE;
+				goto cleanup;
+			}
+
+			if (!write_idme(fp, buf, sizeof(buf))) {
+				fprintf(stderr, "Error: Failed to write IDME data.\n");
+				ret = EXIT_FAILURE;
+			} else {
+				printf("Set version to '%s'.\n", argv[1]);
+			}
+		}
 	} else if (strcmp(argv[0], "flags") == 0) {
 		ret = cmd_flags(hdr, argc - 1, argv + 1, fp, buf);
 	} else if (strcmp(argv[0], "board") == 0) {
