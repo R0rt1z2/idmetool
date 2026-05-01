@@ -77,6 +77,8 @@ static void print_usage(const char *prog)
 			"Show current boot mode\n");
 	fprintf(stderr, "  bootcount                               "
 			"Show current boot count\n");
+	fprintf(stderr, "  bootcount reset                         "
+			"Reset boot count to 0\n");
 	fprintf(stderr, "  version [value]                         "
 			"Show or set the IDME version\n");
 }
@@ -455,12 +457,36 @@ int main(int argc, char *argv[])
 			       idmelib_bootmode_to_str(mode));
 		}
 	} else if (strcmp(argv[0], "bootcount") == 0) {
-		unsigned int count;
-		if (idmelib_get_bootcount(hdr, &count) != 0) {
-			fprintf(stderr, "Error: Could not read bootcount.\n");
+		if (argc >= 2 && strcmp(argv[1], "reset") == 0) {
+			if (idmelib_set_var(hdr, "bootcount", "0") != 0) {
+				fprintf(stderr,
+					"Error: Could not reset bootcount.\n");
+				ret = EXIT_FAILURE;
+				goto cleanup;
+			}
+
+			if (!write_idme(fp, buf, sizeof(buf))) {
+				fprintf(stderr,
+					"Error: Failed to write IDME data.\n");
+				ret = EXIT_FAILURE;
+			} else {
+				printf("Bootcount reset to 0.\n");
+			}
+		} else if (argc >= 2) {
+			fprintf(stderr,
+				"Error: Unknown bootcount subcommand '%s'.\n",
+				argv[1]);
+			print_usage(prog);
 			ret = EXIT_FAILURE;
 		} else {
-			printf("%u\n", count);
+			unsigned int count;
+			if (idmelib_get_bootcount(hdr, &count) != 0) {
+				fprintf(stderr,
+					"Error: Could not read bootcount.\n");
+				ret = EXIT_FAILURE;
+			} else {
+				printf("%u\n", count);
+			}
 		}
 	} else {
 		fprintf(stderr, "Error: Unknown command '%s'.\n", argv[0]);
